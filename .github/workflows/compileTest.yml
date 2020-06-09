@@ -31,4 +31,6 @@ jobs:
       run: |
         echo Add other actions to build,
         echo test, and deploy your project.
-        ./ditool
+	g++ ditool.cpp -o ditool -g
+        ./ditool 1 1 && ./ditool 0 1
+	./ditool 1 4 5 && ./ditool 0 4 5

@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #define STARTSIGNATURE 0x51AB151CABCDEF98
 #define MIDSIGNATURE   0x1DD1E51C98765432
@@ -102,6 +103,24 @@ class BlockPattern
 {
 public:
     BlockPattern() {}
+
+    void* operator new(size_t size)
+    {
+        void* ptr;
+        int ret = ::posix_memalign(&ptr, 512, size);
+
+        if (ret)
+        {
+            std::cout << "Posix memalign failed with error " << ret << " errno " << errno << std::endl;
+        }
+
+        return ptr;
+    }
+
+    void operator delete(void* p)
+    {
+        ::free(p);
+    }
     
     void fillBlock(uint64_t dir, uint64_t file, uint64_t block, uint64_t& offset, uint64_t number)
     {
@@ -259,7 +278,16 @@ int main(int argc, char* argv[])
 
     if ((argc < 3) || (argc > 4))
     {
-        std::cout << "Arguments wrong or not provided. Usage: " << argv[0] << " 0 (write) OR 1(read)" <<  std::endl;
+        std::cout << "Arguments wrong or not provided. Usage: " << std::endl
+                  << argv[0] << " <op_number> <file_number> <pattern_number>[optional]" << std::endl
+                  << "<op_number>      -> 1 - Read, 0 - Write" << std::endl
+                  << "<file_number>    -> If given 1, filename will be taken as file1" <<std::endl
+                  << "<pattern_number> -> Unique pattern for to be filled in this file. Example 1 OR 5" << std::endl
+                  << "Examples: " << std::endl
+                  << argv[0] << " 0 1" << std::endl
+                  << argv[0] << " 1 1" << std::endl
+                  << argv[0] << " 0 4 5" << std::endl
+                  << argv[0] << " 1 4 5" << std::endl;
         return -1;
     }
 
